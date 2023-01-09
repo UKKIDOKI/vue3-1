@@ -2,7 +2,7 @@
   <div>
     <h2>게시글 등록</h2>
     <hr class="my-4" />
-    <form @submit="submitForm(title, content)" @submit.prevent>
+    <form @submit.prevent="save(title, content)">
       <div class="mb-3">
         <label for="titie" class="form-label">제목</label>
         <input type="text" class="form-control" id="titie" v-model="title" />
@@ -32,7 +32,7 @@
 
 <script setup>
 import { useRouter } from 'vue-router';
-import { setPost } from '@/api/posts';
+import { createPost } from '@/api/posts';
 import dayjs from 'dayjs';
 
 const router = useRouter();
@@ -43,14 +43,21 @@ const goPostList = () => {
   });
 };
 
-const submitForm = (title, content) => {
-  console.log('title11111111111111111111111111', title);
-  console.log('content1111111111111111111111111', content);
-  const today = dayjs().format('YYYY-MM-DD');
-  setPost(title, content, today);
-  router.push({
-    name: 'Posts',
-  });
+const save = async (title, content) => {
+  console.log(title, content);
+  try {
+    const createdAt = dayjs().format('YYYY-MM-DD');
+    await createPost({
+      title,
+      content,
+      createdAt,
+    });
+    router.push({
+      name: 'Posts',
+    });
+  } catch (error) {
+    console.log(error);
+  }
 };
 </script>
 

@@ -1,8 +1,8 @@
 <template>
   <div>
-    <h2>{{}}</h2>
-    <p>{{}}</p>
-    <p class="text-muted">2023-01-01</p>
+    <h2>{{ post.title }}</h2>
+    <p>{{ post.content }}</p>
+    <p class="text-muted">{{ post.createdAt }}</p>
     <hr class="my-4" />
     <div class="row g-2">
       <div class="col-auto">
@@ -21,20 +21,57 @@
         </button>
       </div>
       <div class="col-auto">
-        <button class="btn btn-outline-danger">삭제</button>
+        <button @click="remove" class="btn btn-outline-danger">삭제</button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { useRoute, useRouter } from 'vue-router';
+import { useRouter } from 'vue-router';
 import { ref } from 'vue';
-const route = useRoute();
-const router = useRouter();
-const id = route.params.id;
+import { deletePost, getPostById } from '@/api/posts';
 
-const posts = ref([]);
+const props = defineProps({
+  id: {
+    default: '',
+    type: [Number, String],
+  },
+});
+
+const router = useRouter();
+const post = ref({});
+
+const fetchPost = async () => {
+  try {
+    const { data } = await getPostById(props.id);
+    setPost(data);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const setPost = ({ title, content, createdAt }) => {
+  post.value.title = title;
+  post.value.content = content;
+  post.value.createdAt = createdAt;
+};
+fetchPost();
+
+const remove = async () => {
+  try {
+    console.dir(confirm);
+    if (confirm('삭제 하시겠습니까?') === false) {
+      return;
+    }
+    router.push({
+      name: 'Posts',
+    });
+    await deletePost(props.id);
+  } catch (error) {
+    console.log(error);
+  }
+};
 
 const goListPage = () => {
   router.push({
@@ -44,7 +81,7 @@ const goListPage = () => {
 const goEditPage = () => {
   router.push({
     name: 'PostsEdit',
-    params: id,
+    params: props.id,
   });
 };
 </script>
