@@ -1,47 +1,41 @@
 <template>
   <div>
     <h2>게시글 목록</h2>
-    <form @submit.prevent>
-      <div class="row g-3">
-        <div class="col">
-          <input v-model="params.title_like" type="text" class="form-control" />
-        </div>
-        <div class="col-3">
-          <select class="form-select" v-model="params._limit">
-            <option value="3">3개씩 보기</option>
-            <option value="6">6개씩 보기</option>
-            <option value="9">9개씩 보기</option>
-          </select>
-        </div>
-      </div>
-    </form>
+    <PostFilter
+      v-model:like="params.title_like"
+      v-model:limit="params._limit"
+    ></PostFilter>
     <hr class="my-4" />
-    <div class="row g-3">
-      <div v-for="post in posts" :key="post.id" class="col-4">
-        <PostItem
-          :title="post.title"
-          :content="post.content"
-          :created-at="post.createdAt"
-          @click="goPage(post)"
-        ></PostItem>
-      </div>
-    </div>
-    <AppPagination :page="params._page" :pageCount="pageCount"></AppPagination>
+    <AppGrid :items="posts" v-slot="{ item }" classCss="col-4">
+      <PostItem
+        :title="item.title"
+        :content="item.content"
+        :created-at="item.createdAt"
+        @click="goPage(item)"
+      ></PostItem>
+    </AppGrid>
+    <AppPagination
+      :currentPage="params._page"
+      :pageCount="pageCount"
+      @page="page => (params._page = page)"
+    ></AppPagination>
     <hr class="my-5" />
     <AppCard>
-      <PostsDetaill :id="'1'"></PostsDetaill>
+      <!-- <PostsDetaill :id="'1'"></PostsDetaill> -->
     </AppCard>
   </div>
 </template>
 
 <script setup>
 import PostItem from '@/components/posts/PostItem.vue';
-import PostsDetaill from '@/views/posts/PostDetaillView.vue';
+// import PostsDetaill from '@/views/posts/PostDetaillView.vue';
 import { getPosts } from '@/api/posts';
 import { ref, computed, watchEffect } from 'vue';
 import { useRouter } from 'vue-router';
 import AppCard from '@/components/AppCard.vue';
 import AppPagination from '@/components/AppPagination.vue';
+import AppGrid from '@/components/AppGrid.vue';
+import PostFilter from '@/components/posts/PostFilter.vue';
 
 const params = ref({
   _sort: 'createdAt',
@@ -51,25 +45,10 @@ const params = ref({
   title_like: '',
 });
 
-const changePage = page => {
-  params.value._page = page;
+const con = e => {
+  params.value.title_like = e;
 };
 
-const prevPage = () => {
-  if (params.value._page === 1) {
-    alert('첫번째 페이지입니다');
-  } else {
-    params.value._page = --params.value._page;
-  }
-};
-
-const nextPage = () => {
-  if (params.value._page < pageCount.value) {
-    params.value._page = ++params.value._page;
-  } else {
-    alert('마지막 페이지입니다');
-  }
-};
 //paging
 const totalCount = ref(0);
 const pageCount = computed(() =>
@@ -86,6 +65,7 @@ const posts = ref([]);
 const fetchPosts = async () => {
   try {
     const { data, headers } = await getPosts(params.value);
+    // console.dir(params.value);
     posts.value = data;
     totalCount.value = headers['x-total-count'];
   } catch (e) {

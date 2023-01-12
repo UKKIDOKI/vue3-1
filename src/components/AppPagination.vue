@@ -1,7 +1,7 @@
 <template>
   <nav class="mt-5" aria-label="Page navigation example">
     <ul class="pagination justify-content-center">
-      <li class="page-item" :class="{ disabled: props.page === 1 }">
+      <li class="page-item" :class="isPrevPage">
         <a
           class="page-link"
           href="#"
@@ -12,16 +12,16 @@
         </a>
       </li>
       <li
-        v-for="page in props.pageCount"
+        v-for="page in pageCount"
         :key="page"
         class="page-item"
-        :class="{ active: props.page === page }"
+        :class="{ active: currentPage === page }"
       >
         <a class="page-link" href="#" @click.prevent="changePage(page)">{{
           page
         }}</a>
       </li>
-      <li class="page-item" :class="{ disabled: props.page >= pageCount }">
+      <li class="page-item" :class="isNextPage">
         <a
           class="page-link"
           href="#"
@@ -36,11 +36,53 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
+
 const props = defineProps({
-  page: null,
-  pageCount: null,
+  currentPage: {
+    type: Number,
+    required: true,
+  },
+  pageCount: {
+    type: Number,
+    required: true,
+  },
 });
-defineEmits(['update:', 'update:content']);
+
+const data = {
+  page: props.currentPage,
+  pageCount: props.pageCount,
+};
+const emits = defineEmits(['page']);
+
+const changePage = page => {
+  data.page = page;
+  emits('page', data.page);
+};
+
+const prevPage = () => {
+  if (props.currentPage === 1) {
+    alert('첫번째 페이지입니다');
+  } else {
+    data.page = --data.page;
+    emits('page', data.page);
+  }
+};
+
+const nextPage = () => {
+  if (props.currentPage < props.pageCount) {
+    data.page = ++data.page;
+    emits('page', data.page);
+  } else {
+    alert('마지막 페이지입니다');
+  }
+};
+const isPrevPage = computed(() => ({ disabled: props.currentPage === 1 }));
+const isNextPage = computed(() => ({
+  disabled: props.currentPage >= props.pageCount,
+}));
 </script>
 
 <style lang="scss" scoped></style>
+
+() => { const log return log } () =>
